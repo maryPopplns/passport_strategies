@@ -1,9 +1,12 @@
 require('dotenv').config();
 const path = require('path');
-const router = require('express').Router();
+const bcrypt = require('bcryptjs');
 const passport = require('passport');
-const GoogleStrategy = require('passport-google-oauth20').Strategy;
+const router = require('express').Router();
+const { check } = require('express-validator');
+const LocalStrategy = require('passport-local').Strategy;
 const User = require(path.join(__dirname, '../models/user'));
+const GoogleStrategy = require('passport-google-oauth20').Strategy;
 
 passport.use(
   new GoogleStrategy(
@@ -30,6 +33,26 @@ passport.use(
     }
   )
 );
+// [ DEFINE LOCAL STRATEGY ]
+passport.use(
+  new LocalStrategy((username, password, done) => {
+    User.findOne({ username: username }, (err, user) => {
+      if (err) {
+        return done(err);
+      }
+      if (!user) {
+        return done(null, false, { message: 'Incorrect username' });
+      }
+      bcrypt.compare(password, user.password, (err, res) => {
+        if (res) {
+          return done(null, user);
+        } else {
+          return done(null, false, { message: 'Incorrect password' });
+        }
+      });
+    });
+  })
+);
 
 passport.serializeUser(function (user, done) {
   done(null, user.id);
@@ -40,18 +63,30 @@ passport.deserializeUser(function (id, done) {
   });
 });
 
+// [ GOOGLE ROUTES ]
 router.get(
-  '/',
+  '/google',
   passport.authenticate('google', { scope: ['profile', 'email'] })
 );
-
 router.get(
-  '/success',
+  'google/success',
   passport.authenticate('google', {
     failureRedirect: '/login',
     successRedirect: '/',
     failureMessage: true,
   })
 );
+
+// [ USERNAME/PASSWORD ROUTES ]
+// router.get(
+//   '/username',
+//   (req, res, next) => res.end('username')
+//   // passport.authenticate('google', { scope: ['profile', 'email'] })
+// );
+
+// router.get('/logout', (req, res, next) => {
+//   req.logout();
+//   res.redirect('/');
+// });
 
 module.exports = router;
