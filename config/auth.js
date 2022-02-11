@@ -1,6 +1,6 @@
 require('dotenv').config();
 const path = require('path');
-const loginRouter = require('express').Router();
+const router = require('express').Router();
 const passport = require('passport');
 const GoogleStrategy = require('passport-google-oauth20').Strategy;
 const User = require(path.join(__dirname, '../models/user'));
@@ -16,10 +16,10 @@ passport.use(
       const { sub, email, name } = profile._json;
 
       const query = { email };
-      const update = { sub, email, name };
+      const update = { fullname: sub, email, username: name };
       const options = { upsert: true, new: true };
       // Find the document
-
+      console.log(profile._json);
       User.findOneAndUpdate(query, update, options, function (error, result) {
         if (error) {
           cb(error);
@@ -40,19 +40,18 @@ passport.deserializeUser(function (id, done) {
   });
 });
 
-//
-loginRouter.get(
+router.get(
   '/',
   passport.authenticate('google', { scope: ['profile', 'email'] })
 );
 
-loginRouter.get(
+router.get(
   '/success',
   passport.authenticate('google', {
     failureRedirect: '/login',
-    successRedirect: '/login/access',
+    successRedirect: '/',
     failureMessage: true,
   })
 );
 
-module.exports = loginRouter;
+module.exports = router;
