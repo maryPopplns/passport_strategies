@@ -4,7 +4,9 @@ block content
   a(href='/login/google') google login
   br
   a(href='/login/username') username / password
-  //- if currentUser
-  //-   div=currentUser.email
-  //-   div=currentUser.username
-  //-   a(href='/login/logout') logout
+  if currentUser
+    br
+    br
+    div=currentUser.email
+    div=currentUser.username
+    a(href='/login/logout') logout
