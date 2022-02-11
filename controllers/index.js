@@ -3,5 +3,5 @@ exports.index_get = function (req, res, next) {
 };
 
 exports.auth_get = function (req, res, next) {
-  res.end('auth');
+  res.render('auth');
 };
